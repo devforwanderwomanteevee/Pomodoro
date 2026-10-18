@@ -63,6 +63,21 @@ body {
   margin: 0 0 16px;
 }
 
+.bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  margin: -4px 0 16px;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #ffb347;
+  border-radius: 3px;
+}
+
 .actions {
   display: flex;
   gap: 10px;
@@ -81,6 +96,11 @@ body {
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .btn.primary {
