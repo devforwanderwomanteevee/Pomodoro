@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Art</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="screen">
+    <div class="art"></div>
+    <canvas class="photo" id="photo" role="img" aria-label="Artwork"></canvas>
+    <div class="shade"></div>
+    <div class="loading" id="loading">
+      <div>
+        <p>Loading artwork...</p>
+        <span></span>
+      </div>
+    </div>
+    <div class="notice" id="notice" hidden>
+      <div>
+        <p>We couldn't load a painting this time.</p>
+        <button class="btn primary" id="retry-btn" type="button">Try again</button>
+      </div>
+    </div>
+    <div class="panel">
+      <p class="status" id="status">Ready</p>
+      <div class="time" id="time">25:00</div>
+      <div class="bar" id="bar" hidden><i></i></div>
+      <div class="actions" id="actions">
+        <button class="btn primary" id="main-btn" type="button">Start</button>
+        <button class="btn" id="reset-btn" type="button">Reset</button>
+        <button class="btn primary wide" id="restart-btn" type="button" hidden>Restart session</button>
+      </div>
+    </div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

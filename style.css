@@ -1,0 +1,243 @@
+:root {
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #000;
+  color: #f2f2f5;
+  font-family: system-ui, sans-serif;
+}
+
+/* The whole screen: painting fills the background */
+.screen {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.art {
+  position: absolute;
+  inset: -8%;
+  filter: blur(24px);
+  background:
+    radial-gradient(circle at 72% 28%, #ffd27a 0, rgba(255, 210, 122, 0) 28%),
+    radial-gradient(circle at 20% 75%, #2a6df4 0, rgba(42, 109, 244, 0) 45%),
+    linear-gradient(135deg, #4a1f7a, #c93f6b 55%, #f6a45b);
+}
+
+/* The real painting, drawn on a canvas a little larger than the screen so the blur has picture to blend with at the edges */
+.photo {
+  --blur: 0px;
+  position: absolute;
+  opacity: 0;
+  filter: blur(var(--blur));
+  transition: opacity 0.6s ease;
+}
+
+.photo.ready {
+  opacity: 1;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5, 5, 10, 0.88) 0%, rgba(5, 5, 10, 0.35) 40%, rgba(5, 5, 10, 0) 70%);
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.loading[hidden] {
+  display: none;
+}
+
+.loading p {
+  font: 0.85rem var(--mono);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  text-align: center;
+}
+
+.loading span {
+  display: block;
+  width: 120px;
+  height: 3px;
+  margin: 14px auto 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #ffb347, transparent);
+  background-size: 200% 100%;
+  animation: slide 1.4s linear infinite;
+}
+
+@keyframes slide {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.notice {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice > div {
+  max-width: 320px;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.notice p {
+  font: 0.9rem/1.5 var(--mono);
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+  text-wrap: balance;
+  margin: 0 0 16px;
+}
+
+/* Frosted-glass panel */
+.panel {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  width: 400px;
+  padding: 22px 24px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.status {
+  font: 0.75rem var(--mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 6px;
+}
+
+.time {
+  font: 700 5.2rem/1 var(--mono);
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  margin: -4px 0 16px;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #ffb347;
+  border-radius: 3px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.details {
+  margin: 0 0 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.details .name {
+  font: 700 1.35rem/1.2 system-ui, sans-serif;
+  margin: 0 0 4px;
+}
+
+.details .meta {
+  font: 0.85rem var(--mono);
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.details .message {
+  font: 600 1rem/1.4 system-ui, sans-serif;
+  margin: 0;
+}
+
+.details .link {
+  display: inline-block;
+  margin-top: 10px;
+  padding-bottom: 2px;
+  font: 600 0.75rem var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffb347;
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+.details .link:hover,
+.details .link:focus-visible {
+  color: #ffd27a;
+}
+
+.btn {
+  font: 600 0.85rem/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 0 22px;
+  min-height: 48px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  cursor: pointer;
+}
+
+.btn.wide {
+  flex: 1;
+}
+
+.btn.primary {
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* Phone */
+@media (max-width: 700px) {
+  .panel {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    width: auto;
+  }
+  .time {
+    font-size: 4.2rem;
+    text-align: center;
+  }
+  .status { text-align: center; }
+  .actions { justify-content: center; }
+  .btn { flex: 1; }
+}

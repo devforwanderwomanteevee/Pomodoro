@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup B - Gallery Wall</title>
+<style>
+  :root { --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; --accent: #7fe0d0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0b10; color: #f2f2f5; font-family: system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  nav { font: 0.8rem var(--mono); letter-spacing: 0.08em; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+  nav a { color: #9a9aa8; text-decoration: none; }
+  nav a.here { color: var(--accent); }
+  h1 { font: 700 1.4rem var(--mono); letter-spacing: 0.04em; margin: 8px 0 4px; }
+  .intro { color: #9a9aa8; margin: 0 0 8px; font-size: 0.95rem; }
+  h2 { font: 600 0.85rem var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 36px 0 10px; }
+  .note { font: 0.78rem var(--mono); color: #7d7d8c; margin: 8px 0 0; }
+
+  /* The "screen" being mocked up: a dark wall with a framed painting */
+  .board { position: relative; overflow: hidden; border-radius: 18px; height: 700px; border: 1px solid #23232c;
+      background: radial-gradient(ellipse at 50% 35%, #1b1b26 0%, #07070a 70%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 28px 24px; }
+  .frame { position: relative; flex: 1 1 auto; min-height: 0; aspect-ratio: 4 / 3; max-width: 100%; border: 9px solid #17171f; outline: 1px solid #34344a; overflow: hidden;
+      box-shadow: 0 0 90px rgba(127,224,208,0.22), 0 18px 50px rgba(0,0,0,0.7); }
+  .art { position: absolute; inset: -8%; background:
+      radial-gradient(circle at 30% 30%, #f4e3a1 0, rgba(244,227,161,0) 30%),
+      radial-gradient(circle at 78% 72%, #0f9d8c 0, rgba(15,157,140,0) 45%),
+      linear-gradient(160deg, #14305a, #3a6ea5 50%, #e2a76f); }
+  .before .art { filter: blur(24px); }
+  .running .art { filter: blur(10px); }
+
+  .controls { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .time { font: 700 3.6rem/1 var(--mono); letter-spacing: -0.02em; }
+  .bar { width: 240px; height: 3px; background: rgba(255,255,255,0.15); border-radius: 3px; }
+  .bar i { display: block; height: 100%; width: 40%; background: var(--accent); border-radius: 3px; }
+  .actions { display: flex; gap: 10px; }
+  .btn { font: 600 0.85rem/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: #fff; padding: 0 24px; min-height: 48px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+  .btn.primary { background: rgba(127,224,208,0.22); border-color: rgba(127,224,208,0.6); }
+
+  /* Museum-style plaque shown at the end */
+  .plaque { text-align: left; padding: 12px 18px; border-radius: 10px; min-width: 260px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  .plaque .name { font: 700 1.15rem/1.2 system-ui, sans-serif; margin: 0 0 3px; }
+  .plaque .meta { font: 0.8rem var(--mono); color: rgba(255,255,255,0.72); margin: 0; letter-spacing: 0.04em; }
+  .loading { display: grid; place-items: center; height: 260px; border-radius: 18px; border: 1px solid #23232c; background: #07070a; }
+  .loading p { font: 0.85rem var(--mono); letter-spacing: 0.25em; text-transform: uppercase; color: #9a9aa8; margin: 0; text-align: center; }
+  .loading span { display: block; width: 120px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--accent), transparent); background-size: 200% 100%; animation: slide 1.4s linear infinite; }
+  @keyframes slide { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  @media (max-width: 700px) {
+    .board { max-width: 390px; margin: 0 auto; height: 740px; padding: 20px 16px; gap: 16px; }
+    .frame { aspect-ratio: 4 / 5; flex: 1 1 auto; }
+    .time { font-size: 3rem; }
+    .plaque { min-width: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="a-spotlight.html">A · Spotlight</a><a class="here" href="b-gallery-wall.html">B · Gallery Wall</a><a href="c-side-panel.html">C · Side Panel</a></nav>
+  <h1>B · Gallery Wall</h1>
+  <p class="intro">The painting hangs framed on a dark wall with a soft glow. The timer and glass buttons sit underneath, and a museum plaque appears at the end. Resize your browser window to see the phone and laptop layouts. This is a picture of the design only; the buttons do nothing.</p>
+
+  <h2>1 · Before starting</h2>
+  <div class="board before">
+    <div class="frame"><div class="art"></div></div>
+    <div class="controls">
+      <div class="time">25:00</div>
+      <div class="actions"><button class="btn primary" type="button">Start</button><button class="btn" type="button">Reset</button></div>
+    </div>
+  </div>
+  <p class="note">Painting: very blurred.</p>
+
+  <h2>2 · Timer running</h2>
+  <div class="board running">
+    <div class="frame"><div class="art"></div></div>
+    <div class="controls">
+      <div class="time">14:32</div>
+      <div class="bar"><i></i></div>
+      <div class="actions"><button class="btn primary" type="button">Pause</button><button class="btn" type="button">Reset</button></div>
+    </div>
+  </div>
+  <p class="note">Painting: half blurred, getting clearer.</p>
+
+  <h2>3 · Timer finished</h2>
+  <div class="board finished">
+    <div class="frame"><div class="art"></div></div>
+    <div class="controls">
+      <div class="time">00:00</div>
+      <div class="plaque">
+        <p class="name">The Amber Harbor</p>
+        <p class="meta">Elena Marlowe · 1887</p>
+      </div>
+      <div class="actions"><button class="btn primary" type="button">Restart session</button></div>
+    </div>
+  </div>
+  <p class="note">Painting: fully sharp. Details appear only now.</p>
+
+  <h2>Optional · Loading artwork</h2>
+  <div class="loading"><div><p>Loading artwork...</p><span></span></div></div>
+</div>
+</body>
+</html>

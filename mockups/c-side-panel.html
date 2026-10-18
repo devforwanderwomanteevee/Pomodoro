@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup C - Side Panel</title>
+<style>
+  :root { --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; --accent: #ff7a59; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0b10; color: #f2f2f5; font-family: system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  nav { font: 0.8rem var(--mono); letter-spacing: 0.08em; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+  nav a { color: #9a9aa8; text-decoration: none; }
+  nav a.here { color: var(--accent); }
+  h1 { font: 700 1.4rem var(--mono); letter-spacing: 0.04em; margin: 8px 0 4px; }
+  .intro { color: #9a9aa8; margin: 0 0 8px; font-size: 0.95rem; }
+  h2 { font: 600 0.85rem var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 36px 0 10px; }
+  .note { font: 0.78rem var(--mono); color: #7d7d8c; margin: 8px 0 0; }
+
+  /* The "screen" being mocked up: painting on the left, glass control panel on the right */
+  .board { position: relative; overflow: hidden; border-radius: 18px; height: 620px; border: 1px solid #23232c; background: #000;
+      display: grid; grid-template-columns: 2fr 1fr; }
+  .artwrap { position: relative; overflow: hidden; }
+  .art { position: absolute; inset: -8%; background:
+      radial-gradient(circle at 25% 25%, #ffe08a 0, rgba(255,224,138,0) 28%),
+      radial-gradient(circle at 70% 80%, #d6336c 0, rgba(214,51,108,0) 48%),
+      linear-gradient(120deg, #1d2b64, #5a3d8a 50%, #f08a5d); }
+  .before .art { filter: blur(24px); }
+  .running .art { filter: blur(10px); }
+
+  .side { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 28px; }
+  .side::before { content: ""; position: absolute; inset: -20%; background: inherit; z-index: 0;
+      background: radial-gradient(circle at 30% 20%, #5a3d8a, transparent 60%), radial-gradient(circle at 70% 90%, #d6336c, transparent 55%), #12121a;
+      filter: blur(30px); opacity: 0.85; }
+  .side > * { position: relative; z-index: 1; }
+  .glass { padding: 22px; border-radius: 20px; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
+  .status { font: 0.75rem var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin: 0 0 8px; }
+  .time { font: 700 3.6rem/1 var(--mono); letter-spacing: -0.03em; margin: 0 0 16px; }
+  .bar { height: 3px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: -4px 0 16px; }
+  .bar i { display: block; height: 100%; width: 40%; background: var(--accent); border-radius: 3px; }
+  .actions { display: flex; flex-direction: column; gap: 10px; }
+  .btn { font: 600 0.85rem/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: #fff; padding: 0 22px; min-height: 48px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.14);
+      backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+  .btn.primary { background: rgba(255,122,89,0.3); border-color: rgba(255,122,89,0.7); }
+  .nowshowing { margin: 0 0 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2); }
+  .nowshowing .label { font: 0.7rem var(--mono); letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  .nowshowing .name { font: 700 1.5rem/1.15 system-ui, sans-serif; margin: 0 0 6px; }
+  .nowshowing .meta { font: 0.85rem var(--mono); color: rgba(255,255,255,0.75); margin: 0; letter-spacing: 0.04em; }
+  .loading { display: grid; place-items: center; height: 260px; border-radius: 18px; border: 1px solid #23232c; background: #07070a; }
+  .loading p { font: 0.85rem var(--mono); letter-spacing: 0.25em; text-transform: uppercase; color: #9a9aa8; margin: 0; text-align: center; }
+  .loading span { display: block; width: 120px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--accent), transparent); background-size: 200% 100%; animation: slide 1.4s linear infinite; }
+  @keyframes slide { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  /* Phone: painting on top, panel slides up as a sheet */
+  @media (max-width: 700px) {
+    .board { display: block; height: 700px; max-width: 390px; margin: 0 auto; }
+    .artwrap { position: absolute; inset: 0; }
+    .side { position: absolute; left: 0; right: 0; bottom: 0; padding: 0; display: block; }
+    .side::before { display: none; }
+    .glass { border-radius: 26px 26px 0 0; padding: 20px 18px 24px; background: rgba(15,15,24,0.55); }
+    .time { font-size: 3.2rem; text-align: center; }
+    .status { text-align: center; }
+    .actions { flex-direction: row; }
+    .btn { flex: 1; padding: 0 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a href="a-spotlight.html">A · Spotlight</a><a href="b-gallery-wall.html">B · Gallery Wall</a><a class="here" href="c-side-panel.html">C · Side Panel</a></nav>
+  <h1>C · Side Panel</h1>
+  <p class="intro">On a laptop the painting takes two thirds of the screen and a glass control panel sits on the right. On a phone the panel slides up over the painting like a sheet. Resize your browser window to see both. This is a picture of the design only; the buttons do nothing.</p>
+
+  <h2>1 · Before starting</h2>
+  <div class="board before">
+    <div class="artwrap"><div class="art"></div></div>
+    <div class="side"><div class="glass">
+      <p class="status">Ready</p>
+      <div class="time">25:00</div>
+      <div class="actions"><button class="btn primary" type="button">Start</button><button class="btn" type="button">Reset</button></div>
+    </div></div>
+  </div>
+  <p class="note">Painting: very blurred.</p>
+
+  <h2>2 · Timer running</h2>
+  <div class="board running">
+    <div class="artwrap"><div class="art"></div></div>
+    <div class="side"><div class="glass">
+      <p class="status">Focus</p>
+      <div class="time">14:32</div>
+      <div class="bar"><i></i></div>
+      <div class="actions"><button class="btn primary" type="button">Pause</button><button class="btn" type="button">Reset</button></div>
+    </div></div>
+  </div>
+  <p class="note">Painting: half blurred, getting clearer.</p>
+
+  <h2>3 · Timer finished</h2>
+  <div class="board finished">
+    <div class="artwrap"><div class="art"></div></div>
+    <div class="side"><div class="glass">
+      <p class="status">Session complete</p>
+      <div class="time">00:00</div>
+      <div class="nowshowing">
+        <p class="label">Now showing</p>
+        <p class="name">The Amber Harbor</p>
+        <p class="meta">Elena Marlowe · 1887</p>
+      </div>
+      <div class="actions"><button class="btn primary" type="button">Restart session</button></div>
+    </div></div>
+  </div>
+  <p class="note">Painting: fully sharp. Details appear only now.</p>
+
+  <h2>Optional · Loading artwork</h2>
+  <div class="loading"><div><p>Loading artwork...</p><span></span></div></div>
+</div>
+</body>
+</html>
