@@ -1,4 +1,4 @@
-const TOTAL_MS = 25 * 60 * 1000;
+const TOTAL_MS = 30 * 1000;
 
 // Made-up details for now; shown only when the timer reaches 00:00
 const PAINTING = { name: 'The Amber Harbor', artist: 'Elena Marlowe', year: '1887' };
