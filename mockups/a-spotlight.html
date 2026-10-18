@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup A - Spotlight</title>
+<style>
+  :root { --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; --accent: #ffb347; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0b10; color: #f2f2f5; font-family: system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  nav { font: 0.8rem var(--mono); letter-spacing: 0.08em; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+  nav a { color: #9a9aa8; text-decoration: none; }
+  nav a.here { color: var(--accent); }
+  h1 { font: 700 1.4rem var(--mono); letter-spacing: 0.04em; margin: 8px 0 4px; }
+  .intro { color: #9a9aa8; margin: 0 0 8px; font-size: 0.95rem; }
+  h2 { font: 600 0.85rem var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 36px 0 10px; }
+  .note { font: 0.78rem var(--mono); color: #7d7d8c; margin: 8px 0 0; }
+
+  /* The "screen" being mocked up */
+  .board { position: relative; overflow: hidden; border-radius: 18px; height: 620px; background: #000; container-type: inline-size; border: 1px solid #23232c; }
+  .art { position: absolute; inset: -8%; background:
+      radial-gradient(circle at 72% 28%, #ffd27a 0, rgba(255,210,122,0) 28%),
+      radial-gradient(circle at 20% 75%, #2a6df4 0, rgba(42,109,244,0) 45%),
+      linear-gradient(135deg, #4a1f7a, #c93f6b 55%, #f6a45b); }
+  .before .art { filter: blur(24px); }
+  .running .art { filter: blur(10px); }
+  .shade { position: absolute; inset: 0; background: linear-gradient(to top, rgba(5,5,10,0.88) 0%, rgba(5,5,10,0.35) 40%, rgba(5,5,10,0) 70%); }
+
+  .panel { position: absolute; left: 24px; bottom: 24px; width: 400px; padding: 22px 24px; border-radius: 22px;
+      background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); }
+  .status { font: 0.75rem var(--mono); letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin: 0 0 6px; }
+  .time { font: 700 5.2rem/1 var(--mono); letter-spacing: -0.02em; margin: 0 0 16px; }
+  .bar { height: 3px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: -4px 0 16px; }
+  .bar i { display: block; height: 100%; width: 40%; background: var(--accent); border-radius: 3px; }
+  .actions { display: flex; gap: 10px; }
+  .btn { font: 600 0.85rem/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: #fff; padding: 0 22px; min-height: 48px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.14);
+      backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+  .btn.primary { background: rgba(255,255,255,0.28); border-color: rgba(255,255,255,0.55); }
+  .btn.wide { flex: 1; }
+  .details { margin: 0 0 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2); }
+  .details .name { font: 700 1.35rem/1.2 system-ui, sans-serif; margin: 0 0 4px; }
+  .details .meta { font: 0.85rem var(--mono); color: rgba(255,255,255,0.75); margin: 0; letter-spacing: 0.04em; }
+  .loading { position: absolute; inset: 0; display: grid; place-items: center; background: #0b0b10; }
+  .loading p { font: 0.85rem var(--mono); letter-spacing: 0.25em; text-transform: uppercase; color: #9a9aa8; margin: 0; }
+  .loading span { display: block; width: 120px; height: 3px; margin: 14px auto 0; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--accent), transparent); background-size: 200% 100%; animation: slide 1.4s linear infinite; }
+  @keyframes slide { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  @media (max-width: 700px) {
+    .board { height: 700px; max-width: 390px; margin: 0 auto; }
+    .panel { left: 14px; right: 14px; bottom: 14px; width: auto; }
+    .time { font-size: 4.2rem; text-align: center; }
+    .status { text-align: center; }
+    .actions { justify-content: center; }
+    .btn { flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><a class="here" href="a-spotlight.html">A · Spotlight</a><a href="b-gallery-wall.html">B · Gallery Wall</a><a href="c-side-panel.html">C · Side Panel</a></nav>
+  <h1>A · Spotlight</h1>
+  <p class="intro">The painting fills the whole screen. A frosted-glass panel holds the timer and buttons. Resize your browser window to see the phone and laptop layouts. This is a picture of the design only; the buttons do nothing.</p>
+
+  <h2>1 · Before starting</h2>
+  <div class="board before">
+    <div class="art"></div><div class="shade"></div>
+    <div class="panel">
+      <p class="status">Ready</p>
+      <div class="time">25:00</div>
+      <div class="actions"><button class="btn primary" type="button">Start</button><button class="btn" type="button">Reset</button></div>
+    </div>
+  </div>
+  <p class="note">Painting: very blurred.</p>
+
+  <h2>2 · Timer running</h2>
+  <div class="board running">
+    <div class="art"></div><div class="shade"></div>
+    <div class="panel">
+      <p class="status">Focus</p>
+      <div class="time">14:32</div>
+      <div class="bar"><i></i></div>
+      <div class="actions"><button class="btn primary" type="button">Pause</button><button class="btn" type="button">Reset</button></div>
+    </div>
+  </div>
+  <p class="note">Painting: half blurred, getting clearer.</p>
+
+  <h2>3 · Timer finished</h2>
+  <div class="board finished">
+    <div class="art"></div><div class="shade"></div>
+    <div class="panel">
+      <p class="status">Session complete</p>
+      <div class="time">00:00</div>
+      <div class="details">
+        <p class="name">The Amber Harbor</p>
+        <p class="meta">Elena Marlowe · 1887</p>
+      </div>
+      <div class="actions"><button class="btn primary wide" type="button">Restart session</button></div>
+    </div>
+  </div>
+  <p class="note">Painting: fully sharp. Details appear only now.</p>
+
+  <h2>Optional · Loading artwork</h2>
+  <div class="board" style="height: 260px;">
+    <div class="loading"><div><p>Loading artwork...</p><span></span></div></div>
+  </div>
+</div>
+</body>
+</html>
