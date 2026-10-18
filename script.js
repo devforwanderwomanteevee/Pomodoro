@@ -1,3 +1,6 @@
+const SEARCH_URL = 'https://collectionapi.metmuseum.org/public/collection/v1.1/search?medium=Paintings&hasImages=true&isHighlight=true';
+const OBJECT_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/objects/';
+
 const TOTAL_MS = 30 * 1000;
 
 // Made-up details for now; shown only when the timer reaches 00:00
@@ -11,12 +14,17 @@ const actionsEl = document.getElementById('actions');
 const mainBtn = document.getElementById('main-btn');
 const resetBtn = document.getElementById('reset-btn');
 const restartBtn = document.getElementById('restart-btn');
+const photoEl = document.getElementById('photo');
+const loadingEl = document.getElementById('loading');
 
 let state = 'idle'; // idle, running, paused or finished
 let remainingMs = TOTAL_MS;
 let endTime = 0;
 let intervalId = null;
 let detailsEl = null;
+let paintingIds = [];
+let currentId = null;
+let loadRun = 0;
 
 function formatTime(totalSeconds) {
   const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
@@ -109,3 +117,40 @@ restartBtn.addEventListener('click', reset);
 document.addEventListener('visibilitychange', () => {
   if (state === 'running') tick();
 });
+
+function showImage(url) {
+  return new Promise((resolve, reject) => {
+    photoEl.onload = resolve;
+    photoEl.onerror = reject;
+    photoEl.src = url;
+  });
+}
+
+// Ask the museum for a painting that has a photo; if anything fails, the placeholder stays
+async function loadPainting() {
+  const run = ++loadRun;
+  loadingEl.hidden = false;
+  try {
+    if (paintingIds.length === 0) {
+      const search = await (await fetch(SEARCH_URL)).json();
+      paintingIds = search.objectIDs;
+    }
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const id = paintingIds[Math.floor(Math.random() * paintingIds.length)];
+      if (id === currentId) continue;
+      const painting = await (await fetch(OBJECT_URL + id)).json();
+      if (!painting.primaryImageSmall) continue;
+      await showImage(painting.primaryImageSmall);
+      if (run !== loadRun) return;
+      currentId = id;
+      photoEl.classList.add('ready');
+      break;
+    }
+  } catch (error) {
+    // keep showing the placeholder
+  }
+  if (run === loadRun) loadingEl.hidden = true;
+}
+
+restartBtn.addEventListener('click', loadPainting);
+loadPainting();
