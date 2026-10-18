@@ -7,6 +7,9 @@ const MAX_TRIES = 10;
 
 const TOTAL_MS = 30 * 1000;
 
+// Starting blur, as a share of the screen's longer side
+const BLUR_SHARE = 0.06;
+
 const timeEl = document.getElementById('time');
 const statusEl = document.getElementById('status');
 const barEl = document.getElementById('bar');
@@ -22,10 +25,12 @@ let state = 'idle'; // idle, running, paused or finished
 let remainingMs = TOTAL_MS;
 let endTime = 0;
 let intervalId = null;
+let frameId = null;
 let detailsEl = null;
 let paintingIds = [];
 let currentId = null;
 let currentPainting = null;
+let currentImage = null;
 let loadRun = 0;
 
 function formatTime(totalSeconds) {
@@ -70,8 +75,25 @@ function hideDetails() {
   detailsEl = null;
 }
 
+function currentMs() {
+  return state === 'running' ? Math.max(0, endTime - performance.now()) : remainingMs;
+}
+
+// The blur is strongest with all the time left and gone at 00:00
+function updateBlur(ms) {
+  const px = Math.max(window.innerWidth, window.innerHeight) * BLUR_SHARE * (ms / TOTAL_MS);
+  photoEl.style.setProperty('--blur', px.toFixed(2) + 'px');
+}
+
+function animateBlur() {
+  if (state !== 'running') return;
+  updateBlur(currentMs());
+  frameId = requestAnimationFrame(animateBlur);
+}
+
 function render() {
-  const ms = state === 'running' ? Math.max(0, endTime - performance.now()) : remainingMs;
+  const ms = currentMs();
+  updateBlur(ms);
   timeEl.textContent = formatTime(Math.ceil(ms / 1000));
   barFillEl.style.width = ((TOTAL_MS - ms) / TOTAL_MS) * 100 + '%';
 
@@ -102,6 +124,8 @@ function start() {
   state = 'running';
   endTime = performance.now() + remainingMs;
   intervalId = setInterval(tick, 200);
+  cancelAnimationFrame(frameId);
+  frameId = requestAnimationFrame(animateBlur);
   render();
 }
 
@@ -130,6 +154,11 @@ mainBtn.addEventListener('click', () => {
 resetBtn.addEventListener('click', reset);
 restartBtn.addEventListener('click', reset);
 
+window.addEventListener('resize', () => {
+  updateBlur(currentMs());
+  drawPhoto();
+});
+
 // Catch up straight away when the tab comes back to the front
 document.addEventListener('visibilitychange', () => {
   if (state === 'running') tick();
@@ -151,10 +180,48 @@ function cropAmount(img) {
   return 1 - Math.min(imageShape, screenShape) / Math.max(imageShape, screenShape);
 }
 
+// Draw the painting filling the screen, plus a margin of mirrored picture around it.
+// The blur then fades into the mirrored picture instead of into nothing, so the visible edges stay clean.
+function drawPhoto() {
+  if (!currentImage) return;
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const margin = Math.ceil(Math.max(width, height) * BLUR_SHARE * 2.5);
+  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+
+  photoEl.style.left = -margin + 'px';
+  photoEl.style.top = -margin + 'px';
+  photoEl.style.width = width + margin * 2 + 'px';
+  photoEl.style.height = height + margin * 2 + 'px';
+  photoEl.width = Math.round((width + margin * 2) * ratio);
+  photoEl.height = Math.round((height + margin * 2) * ratio);
+
+  const scale = Math.max(width / currentImage.naturalWidth, height / currentImage.naturalHeight);
+  const drawWidth = currentImage.naturalWidth * scale;
+  const drawHeight = currentImage.naturalHeight * scale;
+  const context = photoEl.getContext('2d');
+  context.scale(ratio, ratio);
+
+  for (let row = -1; row <= 1; row++) {
+    for (let col = -1; col <= 1; col++) {
+      context.save();
+      // The middle tile is the picture itself; the tiles around it are mirrored copies
+      context.translate(col === 0 ? margin : margin + (col + 1) * width, row === 0 ? margin : margin + (row + 1) * height);
+      context.scale(col === 0 ? 1 : -1, row === 0 ? 1 : -1);
+      context.beginPath();
+      context.rect(0, 0, width, height);
+      context.clip();
+      context.drawImage(currentImage, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+      context.restore();
+    }
+  }
+}
+
 function showPainting(id, painting, img) {
   currentId = id;
   currentPainting = painting;
-  photoEl.src = img.src;
+  currentImage = img;
+  drawPhoto();
   photoEl.classList.add('ready');
   if (state === 'finished') {
     hideDetails();
@@ -197,4 +264,5 @@ async function loadPainting() {
 }
 
 restartBtn.addEventListener('click', loadPainting);
+updateBlur(TOTAL_MS);
 loadPainting();
