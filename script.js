@@ -7,9 +7,6 @@ const MAX_TRIES = 10;
 
 const TOTAL_MS = 30 * 1000;
 
-// Made-up details for now; shown only when the timer reaches 00:00
-const PAINTING = { name: 'The Amber Harbor', artist: 'Elena Marlowe', year: '1887' };
-
 const timeEl = document.getElementById('time');
 const statusEl = document.getElementById('status');
 const barEl = document.getElementById('bar');
@@ -28,6 +25,7 @@ let intervalId = null;
 let detailsEl = null;
 let paintingIds = [];
 let currentId = null;
+let currentPainting = null;
 let loadRun = 0;
 
 function formatTime(totalSeconds) {
@@ -38,16 +36,31 @@ function formatTime(totalSeconds) {
 
 // The details only exist on the page while the session is finished
 function showDetails() {
-  if (detailsEl) return;
+  if (detailsEl || !currentPainting) return;
+  const title = (currentPainting.title || '').trim();
+  const artist = (currentPainting.artistDisplayName || '').trim();
+  const year = (currentPainting.objectDate || '').trim();
+  const url = (currentPainting.objectURL || '').trim();
+
   detailsEl = document.createElement('div');
   detailsEl.className = 'details';
   const name = document.createElement('p');
   name.className = 'name';
-  name.textContent = PAINTING.name;
+  name.textContent = title || 'Untitled';
   const meta = document.createElement('p');
   meta.className = 'meta';
-  meta.textContent = PAINTING.artist + ' · ' + PAINTING.year;
+  meta.textContent = [artist || 'Unknown artist', year].filter(Boolean).join(' · ');
   detailsEl.append(name, meta);
+
+  if (url.startsWith('https://')) {
+    const link = document.createElement('a');
+    link.className = 'link';
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'View on the Met website';
+    detailsEl.append(link);
+  }
   actionsEl.before(detailsEl);
 }
 
@@ -138,10 +151,15 @@ function cropAmount(img) {
   return 1 - Math.min(imageShape, screenShape) / Math.max(imageShape, screenShape);
 }
 
-function showPainting(id, img) {
+function showPainting(id, painting, img) {
   currentId = id;
+  currentPainting = painting;
   photoEl.src = img.src;
   photoEl.classList.add('ready');
+  if (state === 'finished') {
+    hideDetails();
+    showDetails();
+  }
 }
 
 // Ask the museum for a painting that has a photo and fits the screen; if anything fails, the placeholder stays
@@ -166,12 +184,12 @@ async function loadPainting() {
       if (!img) continue;
       const crop = cropAmount(img);
       if (crop <= MAX_CROP) {
-        best = { id, img, crop };
+        best = { id, painting, img, crop };
         break;
       }
-      if (!best || crop < best.crop) best = { id, img, crop };
+      if (!best || crop < best.crop) best = { id, painting, img, crop };
     }
-    if (best) showPainting(best.id, best.img);
+    if (best) showPainting(best.id, best.painting, best.img);
   } catch (error) {
     // keep showing the placeholder
   }
