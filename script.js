@@ -3,7 +3,12 @@ const OBJECT_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/obj
 
 // Paintings that would lose more than this share of the picture to cropping are passed over
 const MAX_CROP = 0.1;
-const MAX_TRIES = 10;
+
+// Give up on a request after 10 seconds, and on finding a painting after 5 tries
+const REQUEST_TIMEOUT_MS = 10 * 1000;
+const MAX_TRIES = 5;
+const RETRY_PAUSE_MS = 1000;
+const FRIENDLY_MESSAGE = "We couldn't load a painting this time.";
 
 const TOTAL_MS = 30 * 1000;
 
@@ -20,6 +25,8 @@ const resetBtn = document.getElementById('reset-btn');
 const restartBtn = document.getElementById('restart-btn');
 const photoEl = document.getElementById('photo');
 const loadingEl = document.getElementById('loading');
+const noticeEl = document.getElementById('notice');
+const retryBtn = document.getElementById('retry-btn');
 
 let state = 'idle'; // idle, running, paused or finished
 let remainingMs = TOTAL_MS;
@@ -41,7 +48,17 @@ function formatTime(totalSeconds) {
 
 // The details only exist on the page while the session is finished
 function showDetails() {
-  if (detailsEl || !currentPainting) return;
+  if (detailsEl) return;
+  if (!currentPainting) {
+    detailsEl = document.createElement('div');
+    detailsEl.className = 'details';
+    const message = document.createElement('p');
+    message.className = 'message';
+    message.textContent = FRIENDLY_MESSAGE;
+    detailsEl.append(message);
+    actionsEl.before(detailsEl);
+    return;
+  }
   const title = (currentPainting.title || '').trim();
   const artist = (currentPainting.artistDisplayName || '').trim();
   const year = (currentPainting.objectDate || '').trim();
@@ -164,11 +181,42 @@ document.addEventListener('visibilitychange', () => {
   if (state === 'running') tick();
 });
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Ask the museum for JSON; any problem (no answer, too slow, an error reply) gives null
+async function getJson(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (error) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Load a picture; if it fails or takes more than 10 seconds, the answer is null
 function loadImage(url) {
   return new Promise((resolve) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
+    const timer = setTimeout(() => {
+      img.onload = img.onerror = null;
+      img.src = '';
+      resolve(null);
+    }, REQUEST_TIMEOUT_MS);
+    img.onload = () => {
+      clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      resolve(null);
+    };
     img.src = url;
   });
 }
@@ -229,40 +277,75 @@ function showPainting(id, painting, img) {
   }
 }
 
-// Ask the museum for a painting that has a photo and fits the screen; if anything fails, the placeholder stays
+function isPainting(painting) {
+  const kind = (painting.classification || '').trim();
+  return kind === '' || /paint/i.test(kind);
+}
+
+// One try: pick a painting we haven't tried, and return it with its picture, or null if anything is wrong
+async function fetchCandidate(tried) {
+  if (paintingIds.length === 0) {
+    const search = await getJson(SEARCH_URL);
+    if (!search || !Array.isArray(search.objectIDs) || search.objectIDs.length === 0) return null;
+    paintingIds = search.objectIDs;
+  }
+  const choices = paintingIds.filter((id) => id !== currentId && !tried.has(id));
+  if (choices.length === 0) return null;
+  const id = choices[Math.floor(Math.random() * choices.length)];
+  tried.add(id);
+
+  const painting = await getJson(OBJECT_URL + id);
+  if (!painting || !isPainting(painting)) return null;
+  const photoUrl = painting.primaryImageSmall;
+  if (typeof photoUrl !== 'string' || !photoUrl.startsWith('https://')) return null;
+  const img = await loadImage(photoUrl);
+  if (!img) return null;
+  return { id, painting, img, crop: cropAmount(img) };
+}
+
+// With no painting to show, go back to the placeholder and say so kindly
+function showNoPainting() {
+  currentId = null;
+  currentPainting = null;
+  currentImage = null;
+  photoEl.classList.remove('ready');
+  noticeEl.hidden = false;
+  if (state === 'finished') {
+    hideDetails();
+    showDetails();
+  }
+}
+
+// Try up to 5 times to find a painting that has a photo and fits the screen
 async function loadPainting() {
   const run = ++loadRun;
+  noticeEl.hidden = true;
   loadingEl.hidden = false;
-  try {
-    if (paintingIds.length === 0) {
-      const search = await (await fetch(SEARCH_URL)).json();
-      paintingIds = search.objectIDs;
-    }
-    const tried = new Set();
-    let best = null;
-    for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
-      const id = paintingIds[Math.floor(Math.random() * paintingIds.length)];
-      if (id === currentId || tried.has(id)) continue;
-      tried.add(id);
-      const painting = await (await fetch(OBJECT_URL + id)).json();
-      if (!painting.primaryImageSmall) continue;
-      const img = await loadImage(painting.primaryImageSmall);
+  const tried = new Set();
+  let best = null;
+  let pause = false;
+  for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+    if (pause) {
+      await wait(RETRY_PAUSE_MS);
       if (run !== loadRun) return;
-      if (!img) continue;
-      const crop = cropAmount(img);
-      if (crop <= MAX_CROP) {
-        best = { id, painting, img, crop };
-        break;
-      }
-      if (!best || crop < best.crop) best = { id, painting, img, crop };
     }
-    if (best) showPainting(best.id, best.painting, best.img);
-  } catch (error) {
-    // keep showing the placeholder
+    pause = true;
+    const candidate = await fetchCandidate(tried);
+    if (run !== loadRun) return;
+    if (!candidate) continue;
+    pause = false;
+    if (!best || candidate.crop < best.crop) best = candidate;
+    if (candidate.crop <= MAX_CROP) break;
   }
-  if (run === loadRun) loadingEl.hidden = true;
+  loadingEl.hidden = true;
+  if (best) showPainting(best.id, best.painting, best.img);
+  else showNoPainting();
 }
 
 restartBtn.addEventListener('click', loadPainting);
+retryBtn.addEventListener('click', () => {
+  paintingIds = [];
+  loadPainting();
+});
 updateBlur(TOTAL_MS);
 loadPainting();

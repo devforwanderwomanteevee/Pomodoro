@@ -85,6 +85,34 @@ body {
   to { background-position: -200% 0; }
 }
 
+.notice {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+.notice > div {
+  max-width: 320px;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.notice p {
+  font: 0.9rem/1.5 var(--mono);
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+  text-wrap: balance;
+  margin: 0 0 16px;
+}
+
 /* Frosted-glass panel */
 .panel {
   position: absolute;
@@ -149,6 +177,11 @@ body {
   color: rgba(255, 255, 255, 0.75);
   margin: 0;
   letter-spacing: 0.04em;
+}
+
+.details .message {
+  font: 600 1rem/1.4 system-ui, sans-serif;
+  margin: 0;
 }
 
 .details .link {
