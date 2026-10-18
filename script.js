@@ -1,6 +1,10 @@
 const SEARCH_URL = 'https://collectionapi.metmuseum.org/public/collection/v1.1/search?medium=Paintings&hasImages=true&isHighlight=true';
 const OBJECT_URL = 'https://collectionapi.metmuseum.org/public/collection/v1/objects/';
 
+// Paintings that would lose more than this share of the picture to cropping are passed over
+const MAX_CROP = 0.1;
+const MAX_TRIES = 10;
+
 const TOTAL_MS = 30 * 1000;
 
 // Made-up details for now; shown only when the timer reaches 00:00
@@ -118,15 +122,29 @@ document.addEventListener('visibilitychange', () => {
   if (state === 'running') tick();
 });
 
-function showImage(url) {
-  return new Promise((resolve, reject) => {
-    photoEl.onload = resolve;
-    photoEl.onerror = reject;
-    photoEl.src = url;
+function loadImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
   });
 }
 
-// Ask the museum for a painting that has a photo; if anything fails, the placeholder stays
+// How much of the picture gets trimmed when it fills the screen (0 = none, 0.5 = half)
+function cropAmount(img) {
+  const imageShape = img.naturalWidth / img.naturalHeight;
+  const screenShape = window.innerWidth / window.innerHeight;
+  return 1 - Math.min(imageShape, screenShape) / Math.max(imageShape, screenShape);
+}
+
+function showPainting(id, img) {
+  currentId = id;
+  photoEl.src = img.src;
+  photoEl.classList.add('ready');
+}
+
+// Ask the museum for a painting that has a photo and fits the screen; if anything fails, the placeholder stays
 async function loadPainting() {
   const run = ++loadRun;
   loadingEl.hidden = false;
@@ -135,17 +153,25 @@ async function loadPainting() {
       const search = await (await fetch(SEARCH_URL)).json();
       paintingIds = search.objectIDs;
     }
-    for (let attempt = 0; attempt < 5; attempt++) {
+    const tried = new Set();
+    let best = null;
+    for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
       const id = paintingIds[Math.floor(Math.random() * paintingIds.length)];
-      if (id === currentId) continue;
+      if (id === currentId || tried.has(id)) continue;
+      tried.add(id);
       const painting = await (await fetch(OBJECT_URL + id)).json();
       if (!painting.primaryImageSmall) continue;
-      await showImage(painting.primaryImageSmall);
+      const img = await loadImage(painting.primaryImageSmall);
       if (run !== loadRun) return;
-      currentId = id;
-      photoEl.classList.add('ready');
-      break;
+      if (!img) continue;
+      const crop = cropAmount(img);
+      if (crop <= MAX_CROP) {
+        best = { id, img, crop };
+        break;
+      }
+      if (!best || crop < best.crop) best = { id, img, crop };
     }
+    if (best) showPainting(best.id, best.img);
   } catch (error) {
     // keep showing the placeholder
   }
