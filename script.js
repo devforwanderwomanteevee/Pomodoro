@@ -10,7 +10,7 @@ const MAX_TRIES = 5;
 const RETRY_PAUSE_MS = 1000;
 const FRIENDLY_MESSAGE = "We couldn't load a painting this time.";
 
-const TOTAL_MS = 30 * 1000;
+const TOTAL_MS = 25 * 60 * 1000;
 
 // Starting blur, as a share of the screen's longer side
 const BLUR_SHARE = 0.06;
